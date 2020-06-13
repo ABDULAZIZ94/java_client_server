@@ -1,0 +1,850 @@
+<html>
+<head>
+<title>Building a Basic Client/Server Application II</title>
+
+
+<META NAME="description" CONTENT="This is the second of four tutorials on Client/Server applications. In this tutorial, we will build on the preceding tutorial on how to build a basic client/server application using sockets.  This exercise is similar to the one I teach to second semester college Java students.">
+
+<meta NAME="keywords" CONTENT="total application works, Client/Server, Client/Server Application, Client-Server Application, Client Server Application, Client Server Address Application, java sockets, sockets, jtable">
+
+<meta name="title" content="Building a Basic Client/Server Application II - java, javscript">
+<meta NAME="Copyright" CONTENT="Copyright 2005, Total Application Works">
+<meta NAME="Creator" CONTENT="Total Application Works">
+<meta NAME="Publisher" CONTENT="Total Application Works">
+<meta NAME="Distribution" CONTENT="Global">
+<meta NAME="Rating" CONTENT="General">
+
+
+
+          <meta NAME="revisit-after" content=" 7 days">
+</head>
+<body bgcolor="white" fgcolor="black">
+<font size="5">
+</font><hr>
+<center><font size="4">Tutorial: Basic Client/Server Application II</font></center>
+<br><br> <center> 
+          <img src="indexHWS_files/bludiv4684.html" width="600" height="5">
+
+           <p><font face="Verdana, Arial, Helvetica, sans-serif" size="1">
+
+<br> <br><font size="4">To visit my Site</font><br><br>
+<a href="http://sumtotalz.com/TotalAppsWorks/contact.html"><font size="4">To contact us</font></a>  <br><br>
+[<a href="http://sumtotalz.com/TotalAppsWorks/">HOME</a>] 
+                 [<a href="http://sumtotalz.com/TotalAppsWorks/consulting.html">Consulting</a>] [<a href="http://sumtotalz.com/TotalAppsWorks/design.html">Design</a>]
+                 [<a href="http://sumtotalz.com/TotalAppsWorks/Maintenance.html">Maintenance</a>] [<a href="http://sumtotalz.com/TotalAppsWorks/project.html">Project</a>] 
+                 [<a href="http://sumtotalz.com/TotalAppsWorks/testing.html">Testing</a>] [<a href="http://sumtotalz.com/training.html">Training</a>] [<a href="http://sumtotalz.com/turnkey.html">Turnkey</a>] 
+                  [<a href="http://sumtotalz.com/TotalAppsWorks/java.html">Java</a>]</font></p>
+
+           <p><font color="black" size="2" face="Arial, Helvetica, sans-serif">© 2002 - 2003 All 
+                Rights Reserved<b><i> Total Application Works </i></b></font></p> </center> 
+
+
+<hr>
+<font size="4">
+<ul>
+<li>Tell a friend about this site (copy and paste the following link.)
+<table border>
+<tr>
+<th>http://sumtotalz.com/TotalAppsWorks/Sockets_Tutorial_II.html </th>
+</tr>
+</table>
+<li><a href="#INTRO">Introduction</a>  
+<li><a href="#WIAS">What is a socket?</a>  
+<li><a href="#REQM">Requirements</a> 
+<li><a href="#CURSTR">Template Structure</a>
+<li><a href="#PROP">Proposed Structure</a>
+<li><a href="#SOCK">Sockets</a>
+<li><a href="#SERV">How do we create a simple server?</a>
+<li><a href="#CLIENT">How do we create a client?</a>
+<li><a href="#PTIAOS">Process the input and output streams</a>
+<li><a href="#PTS">How do we put it together to build a server?</a>
+<li><a href="#HDTSW">How does the Server work?</a>
+<li><a href="#PTC">How do we put it together to build a Client?</a> 
+<li><a href="#HDTCW">How does the Client work? </a>
+</ul>
+<h3><a name="INTRO">Introduction </a></h3>
+<p>In this tutorial, we will extend our basic <a href="#C_S">client/server</a> application using <a href="#SOC">sockets</a>.
+The intent for the overall tutorials is to build a <b>Client/Server Address Book</b>. This second tutorial on sockets and Client/Server technology assumes that you have read and completed the following tutorials.
+<ol>
+<li><a href="http://java.sun.com/docs/books/tutorial/getStarted/cupojava/index.html">Your First Cup of Java (Sun.com site)</a>
+<li><a href="http://java.sun.com/docs/books/tutorial/getStarted/index.html"> Getting Started (Sun.com site)</a>
+<li><a href="http://sumtotalz.com/TotalAppsWorks/ProgrammingResource.html">How to get user input and do some simple mathematical processing on the data (my site)</a>
+<li><a href="http://sumtotalz.com/TotalAppsWorks/Sockets_Tutorial.html"> <b><i>A basic Client Server application</i> </b></a>
+</ol>
+In this tutorial, we will build a very simple <client-server</b> address book.
+</p>
+<p><b>Why should client/server applications using sockets be of interest to us?</b> If you use a browser to surf the Net, then you are using a client-server model with sockets to obtain information. This tutorial will not delve into an application as 
+complex as a browser; however, it should serve to provide insights into how to build a basic <a href="#TWOT">two-tier</a> client/server application.
+Our two-tier application model will look like:
+<pre><b>
+                            +------+
+                            |TCP/IP|
+                            +---+--+
+                                |
+  Client                 +---+  |  +---+     Server
+                         | S |  |  | S |
+ +-------------------+   | o |  |  | o |    +-------------+
+ |                   |<->| c |  |  | c |<-->|             |
+ +-------------------+   | k |  v  | k |    +-------------+
+                         | e |<--->| e |      
+                         | t |     | t |     
+                         +---+     +---+
+</b> </pre> <br>
+We will use <b><a href="#TCP">TCP/IP</a></b> as our Internet protocol. The Java classes that we will use will hide the TCP/IP complexities from us.
+</p>
+<p><b><font size=6 color=red>When running this application, start the server first and then start the client.
+<ol>
+<li>Click on Compile_C_S.bat
+<li>Click on Start_Server.bat
+<li>Click on Start_Client.bat
+</ol>
+</font></b>
+</p>
+<p>In this example, our client will request address information based on a last name. If the name exists in a hard coded array, the record information will be returned; otherwise,
+the response will be <b>NOTFOUND</b>. In addition, you will be able to delete records. I considered allowing <b>Add</b> and <b>Update</b> actions, but I felt that the logic required to perform these actions was too much of a jump for 
+this version of the <b><i>Basic Client Server Application</i></b>. As we proceed with the development of this application, remember that the <b>client</b> makes requests of the <b>server</b> and the <b>server</b> responds to those requests.
+</p>
+<h3><a name="WIAS">What is a socket?</a>   </h3>
+<p>What is a socket? What is a corresponding analogy in humans? One method of communicating between humans is speech. Sounds emanate from the
+mouth and are received by the ear. Other examples are:
+<ol>
+<li><b>Radio to ear</b>
+<li><b>Television to ear</b>
+<li><b>Mouth to telephone-mouth-piece to telephone-ear-piece to ear</b>
+<li><b>Computer to computer</b>
+</ol>
+More basically, a radio station broadcasts a signal and your radio/receiver receives that broadcasted signal. A socket enables a computer to send a 
+signal to another computer and for that other computer to receive that signal. 
+In humans, there is a brain and a set of ears. In computers there is a processor and a port. The processor is the brain and the port is the ear.
+Sockets allow computers to communicate with each other. A socket is an endpoint that allows communication between two computers. You know where someone lives by their street address.
+With computers, you can address a computer if you know that computer's internet address (or IP address) and its port number.
+<br><br> <IMG SRC="Client_server.gif"ALIGN=BOTTOM> <br><br> 
+In our example, we want to set up a server that runs on a specific computer and has a socket that is bound to a specific port number. The server just waits, listening to the socket for a client to make a connection request. An example of how this
+is done follows:
+<pre> <b> <font color=blue>
+ServerSocket(int port, int backlog, InetAddress bindAddr)
+          Create a server with the specified port, listen backlog, 
+              and local IP address to bind to.
+</font> </b>  </pre> 
+The code looks like:
+<pre> <b> <font color=blue>
+ServerSocket server_socket = new ServerSocket( 5050, 100,
+                   InetAddress.getByName("127.0.0.1"));
+</font> </b>  </pre> 
+In this case,
+<ol>
+<li>The <b>port</b> is 5050 - The port number on the remote host to which this socket is connected
+<li>The <b>backlog</b> is 100 -  The maximum queue length for incoming connection indications (a request to connect) is set to the backlog parameter.
+<li>The <b>InetAddress</b> is "127.0.0.1" - the local IP address to bind to
+</ol>
+We need code that allows the <b>Client</b> talk to the <b>Server</b>, and it looks like:
+<pre> <b> <font color=blue>
+Socket(InetAddress address, int port)
+          Creates a stream socket and connects it to the specified port 
+              number at the specified IP address.
+</font> </b>  </pre> </p> 
+<h3><a name="REQM"><a href="#REQ">Requirements </a></a></h3>
+<p>The requirements for this basic client/server application using sockets are:
+<ol>
+<li>Build a client/server application, using the <b>application template</b>.
+<ul>
+<li>Use the <b>application template</b> to build the client.
+<li>Use the <b>application template</b> to build the server.
+</ul>
+<li>The client application should use the following:
+<ul>
+<li><b>JLabel</b>
+<li><b>JTextField</b>
+<li><b>JButton</b>
+<li><b>JPanel</b>
+<li><b>JTextArea</b>
+<li><b>Layout Managers</b>
+</ul>
+<li>The server application should use the following:
+<ul>
+<li><b>JButton</b>
+<li><b>JPanel</b>
+<li><b>JTextArea</b>
+<li><b>Layout Managers</b>
+</ul>
+<li>Use <b>sockets</b> to allow two computers to communicate with each other.
+<ul>
+<li>Use the <b>ServerSocket</b> class for the server.
+<li>Use the <b>Socket</b> class for the client.
+</ul>
+<li>Create a hard coded array that contains address information.
+<li>Develop a <a href="#PROT">protocol</a> that will be used between the client and server.
+<ul>
+<li>Use the <b>StringTokenizer</b> - class java.util.StringTokenizer.
+<li>The string tokenizer class allows an application to break (parse) a string into tokens.
+<li>The following actions (<b>Find</b> and <b>Delete</b>) can be sent from the <b>client</b> based on the buttons at the bottom of the frame.<br><br>
+<table border>
+<tr>
+<th>Find</th>
+<th>Delete</th>
+<th>Clear Message</th>
+<th>Exit</th>
+</tr>
+</table>
+</ul><br>
+<li>Use a class that <b>extends</b> WindowAdapter to respond to the closing of the JFrame.
+</ol>
+A more advanced client-server application can be found at <a href="http://sumtotalz.com/TotalAppsWorks/HW_Tutorial_III"> <b><i>A CS Hardware Store III</i> </b></a>
+</p>
+<h3><a name="CURSTR"><a href="#TEM">Template</a>  Structure</a></h3>
+<p><p>We are going modify the template used in the <i>Second Cup of Coffee</i> by having it <a href="#EXT">extend</a> the <a href="#JFR">JFrame</a> class.
+<pre> <b> <font color=blue>
+/** 
+ * The tcpClient class implements an application and extends JFrame.
+ */
+class tcpClient extends JFrame implements  ActionListener {
+
+    /** tcpClient constructor */
+    public tcpClient() {
+       initialization code
+       ...
+    } 
+
+    public static void main(String[] args) {
+        tcpClient app = new tcpClient() ; /** creates an instance of tcpClient  */
+    }
+}
+
+<font color=black size=5>and</font>
+/** 
+ * The tcpServer class implements an application and extends JFrame.
+ */
+class tcpServer extends JFrame implements  ActionListener {
+
+    /** tcpServer constructor */
+    public tcpServer() {
+       initialization code
+       ...
+    } 
+
+    public static void main(String[] args) {
+        tcpServer app = new tcpServer() ; /** creates an instance of tcpServer  */
+    }
+}
+
+</font> </b> </pre>
+
+</p>
+<h3><a name="PROP">Proposed Structure</a></h3>
+<p>The proposed <i>Hardware Store Application</i> client-server structure will look like:
+<pre><b> <font color=blue>
+<center><font size=6>Two-Tier Basic Client/Server Application Structure</font></center>                          
+                            +------+
+                            |TCP/IP|
+                            +---+--+
+                                |
+  tcpClient              +---+  |  +---+     tcpServer
+  Methods                | S |  |  | S |     Methods
+ +-------------------+   | o |  |  | o |    +-------------------+   
+ | tcpClient()       |<->| c |  |  | c |<-->| tcpServer()       |
+ +-------------------+   | k |  v  | k |    +-------------------+   
+ | setUp()           |   | e |<--->| e |    | setup()           | 
+ +-------------------+   | t |     | t |    +-------------------+   
+ | connect()         |   +---+     +---+    | RunServer()       |          
+ +-------------------+                      +-------------------+   
+ | RunClient()       |                      | closeConnection() |      
+ +-------------------+                      +-------------------+   
+ | closeConnection() |                      | findName()        |                            
+ +-------------------+                      +-------------------+
+ |sendData(String )  |                      | addName()         |                              
+ +-------------------+                      +-------------------+
+ | showName()        |                      | updateName()      |
+ +-------------------+                      +-------------------+
+ | main()            |                      | deleteName()      |
+ +-------------------+                      +-------------------+
+                                            |sendData(String )  |
+                                            +-------------------+
+                                            | main()            |
+                                            +-------------------+
+
+</font> </b> </pre>
+<p>The <b>Client Methods</b> perform the following:
+<table border>
+<tr bgcolor=purple>
+<th><font color=white>Method </font> </th>
+<th><font color=white>Decription </font> </th>
+</tr>
+<tr bgcolor=lightyellow>
+<td>actionPerformed()</td>
+<td>This method responds to the find, delete, clear or exit button being pressed on the tcpClient frame.</td>
+</tr>
+<tr bgcolor=lightblue>
+<td>closeConnection() </td>
+<td> This method closes the socket connect to the server.</td>
+</tr>
+<tr>
+<td><b>connect()</b> </td>
+<td>  this method is used to connect to the socket. </td>
+</tr>
+<tr bgcolor=lightyellow>
+<td><b>listNames()</b> </td>
+<td>This method lists all of the name found by the server. </td>
+</tr>
+<tr bgcolor=lightblue>
+<td><b>main()</b>  </td>
+<td> this is the entry point that Java calls when the client application is loaded. </td>
+</tr>
+<tr>
+<td><b>RunClient()</b>  </td>
+<td>  this method is used to create input/output streams and to listen for input from the socket. </td>
+</tr>
+<tr bgcolor=lightyellow>
+<td><b>sendData(String )</b>  </td>
+<td>  is used to send data to the server. </td>
+</tr>
+<tr bgcolor=lightblue>
+<td><b>setUp()</b>  </td>
+<td>  this method is used to setup and allocate the GUI objects. </td>
+</tr>
+<tr>
+<td><b>showName() </b> </td>
+<td> This method shows the name found by the server. </td>
+</tr>
+<tr bgcolor=lightyellow>
+<td><b>tcpClient()</b> </td>
+<td> this is the class constructor used for initialization. </td>
+</tr>
+</table> <br> <br>
+</p>
+<p>The <b>Server Methods</b> perform the following:
+<table border>
+<tr bgcolor=purple>
+<th><font color=white>Method </font> </th>
+<th><font color=white>Decription </font> </th>
+</tr>
+<tr bgcolor=lightyellow>
+<td><b>tcpServer()</b>  </td>
+<td>  this is the class constructor used for initialization. </td>
+</tr>
+<tr bgcolor=lightblue>
+<td><b>setUp()</b>  </td>
+<td>  this method is used to setup and allocate the GUI objects. </td>
+</tr>
+<tr>
+<td><b>RunServer()</b>  </td>
+<td>  this method is used to create the server socket, input/output streams and to listen for input from the socket. </td>
+</tr>
+<tr bgcolor=lightyellow>
+<td><b>closeConnection()</b>  </td>
+<td>  is used to close the socket connection and the input/output streams. </td>
+</tr>
+<tr bgcolor=lightblue>
+<td><b>findName()</b>  </td>
+<td>  this method will search the array and return data to client if record exists </td>
+</tr>
+<tr>
+<td><b>addName()</b>  </td>
+<td>  this is a stub (no code)
+</tr>
+<tr bgcolor=lightyellow>
+<td> <b>updateName()</b>  </td>
+<td>  this is a stub (no code)
+</tr>
+<tr bgcolor=lightblue>
+<td><b>deleteName() </b>  </td>
+<td>  this method will search the array and delete data if record exists </td>
+</tr>
+<tr>
+<td><b>sendData(String )</b>  </td>
+<td>  is used to send data to the client. </td>
+</tr>
+<tr bgcolor=lightyellow>
+<td><b>main()</b>  </td>
+<td>  this is the entry point that Java calls when the server application is loaded. </td>
+</tr>
+</table> <br> <br>
+</p>
+<h3><a name="SOCK">Sockets</a></h3>
+<p>We need a way for the <b>Client</b> to communicate with the <b>Server</b>. We will use <a href="#SOCKETS">sockets</a>. When people are separated by distance, they communicate using telephones. If we say that their brains are a computer, then they are hooking up their brains to a telephone to communicate. 
+Similarly, we can hook up computers using software objects so that the computers can communicate with each other. The picture for such a setup looks like:
+<pre><b> <font color=blue>
+                  TCP/IP   
+                    | 
+  Tier 1     +---+  |  +---+     Tier 2         
++--------+   | S |  v  | S |   +--------+     
+| Client |<->| o |<--->| o |<->| Server |
++--------+   | c |     | c |   +--------+     
+   GUI       | k |     | k |      
+             | e |     | e |
+             | t |     | t |
+             +---+     +---+        
+</font> </b> </pre>
+</p>
+<h3><a name="SERV">How do we create a simple server?</a></h3>
+<p>How do we create a <b>Server</b> in Java? We can create a simple server if we do the following:
+<ol>
+<li>Create a <b>ServerSocket</b> object.
+<pre> <b> <font color=blue>
+ server_socket = new ServerSocket( 5050, 100,
+                                  InetAddress.getByName("127.0.0.1")); 
+<font color=black>
+   Creates a server socket and binds it to the specified local port number.</font>
+</font> </b> </pre>
+<li>Set up a connection and wait for the Client to connect.
+<pre> <b> <font color=blue>
+ Socket socket = server_socket.accept(); 
+<font color=black>
+   This class implements client sockets (also called just "sockets"). 
+   A socket is an endpoint for communication between two machines. </font>
+</font> </b> </pre>
+<li>Create input and output streams.
+<pre><b> <font color=blue>
+BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+<font color=black>
+   Read text from a character-input stream, buffering 
+   characters so as to provide for the efficient reading of 
+   characters, arrays, and lines. </font>
+
+PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+<font color=black>
+   Create a new PrintWriter, without automatic line flushing, 
+   from an existing OutputStream. This convenience constructor 
+   creates the necessary intermediate OutputStreamWriter, which 
+   will convert characters into bytes using the default 
+   character encoding.</font>
+</font> </b> </pre>
+<li>Process the input and output streams.
+<li>Close the socket and input/output streams.
+</ol>
+</p>
+<h3><a name="PTIAOS">Process the input and output streams</a></h3>
+<p>The code for processing the input and output streams is similar in both the client and server. In the following code segment,
+the <b>client</b> will listen to the socket and break the loop if the <b>server</b> sends the message <b><i>FROM SERVER==> QUIT</i></b>.
+<pre> <b> <font color=blue>
+while(true) {
+   String message = input.readLine();
+   // stop if input line equals "QUIT"
+   while ( !message.toUpperCase().equals( "FROM SERVER==> QUIT" ) ) {
+      message = input.readLine();
+   }
+}
+</font> </b> </pre> <br>
+Where <b>input.readLine()</b> reads text from a character-input stream, buffering 
+   characters so as to provide for the efficient reading of 
+   characters, arrays, and lines. 
+</p>
+<p>The following code parses the data read from the socket. In some cases, multiple lines packed in a buffer may be sent at once. However, in this case, there is only one line sent. 
+<ol type=1>
+<pre> <b> <font color=blue>
+<li>tokens = new StringTokenizer( message, ";" ) ;
+<li>if ( tokens.countTokens() > 1 )   {
+<li>   int ii = 0 ;
+<li>   while( tokens.hasMoreTokens() )  {
+<li>      messageTokens[ ii ] = tokens.nextToken().toString() ;
+<li>
+<li>      ii++ ;
+<li>   }
+<li>
+<li>   if ( messageTokens[ 0 ].toUpperCase().equals( "RECORDFOUND" ) ) {
+<li>      showName() ;
+<li>   }
+<li>   else if ( messageTokens[ 0 ].toUpperCase().equals( "RECORDDELETED" ) ) {
+<li>      display.append( "\n" +  message ) ;
+<li>   }
+<li>   else if ( messageTokens[ 0 ].toUpperCase().equals( "NOTFOUND" ) ) {
+<li>      display.append( "\n" +  message ) ;
+<li>   }
+<li>}
+</font> </b> </pre>
+</ol>
+In lines 4 through 8, we will load each set of characters, which are separated by a semicolon, into an string array <b>(messageTokens[ ii ])</b>. The following are the three possible responses from the <b>server</b>:
+<ol>
+<li><b>Line 10: RECORDFOUND</b> - the last name submitted was found by the server and the record was returned to the client.
+<li><b>Line 13: RECORDDELETED</b> - the last name submitted was deleted from the array.
+<li><b>Line 16: NOTFOUND</b> - the last name submitted was not found in the array.
+</ol> <br>
+The above code uses the <b>StringTokenizer</b> class to parse the data sent from the server. Based on the first set of characters (the action), the client takes the appropriate response.
+</p>
+<h3><a name="CLIENT">How do we create a client?</a></h3>
+<p>How do we create a client GUI in Java?
+<ol>
+<pre><b> <font color=blue>
+<li>Create the JButtons.
+
+send = new JButton( "Send" );
+clear = new JButton( "Clear Message" );
+exit = new JButton( "Exit" );
+
+<li>Create the JPanel.
+
+buttonPanel = new JPanel() ;
+
+<li>Add the buttons to the JPanel.
+
+buttonPanel.add( send ) ;
+buttonPanel.add( clear ) ;
+buttonPanel.add( exit ) ;
+
+<li>Add the JPanel to the bottom (SOUTH) of the content 
+       pane container.
+
+c.add( buttonPanel , BorderLayout.SOUTH) ;
+<li>Create a JLabel.
+ 
+enterLabel = new JLabel("Enter message below and then press send or clear." ) ;
+
+<li>Create a JTextField.
+
+enterBox = new JTextField( 100 );
+
+<li>Create the JPanel.
+
+textPanel = new JPanel() ;
+
+<li>Set the layout manager for the JPanel.
+
+textPanel.setLayout( new GridLayout( 2, 1 ) );
+
+<li>Add the JLabel and JTextField to the JPanel.
+     
+textPanel.add( enterLabel ) ;
+textPanel.add( enterBox ) ;
+
+<li>Add the JPanel to the content pane.
+
+c.add( textPanel , BorderLayout.NORTH) ;
+
+<li>Create the JTextArea.
+display = new JTextArea();
+
+<li>Add the JTextArea to the content pane.
+c.add( new JScrollPane( display ),
+             BorderLayout.CENTER );
+</font> </b> </pre>
+</ol>
+<p><b>How do we create a client socket in Java?</b>
+<ol>
+<li>Create a Socket to make connection on port 5050 and host name "127.0.0.1". 
+<pre><b> <font color=blue>
+Socket client = new Socket(
+       InetAddress.getByName( "localhost" ), 5050 );
+</font> </b> </pre>
+<li>Get the Object input and output streams. 
+<pre><b> <font color=blue>
+BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+</font> </b> </pre>
+<li>Listen on the connection and process the I/O.
+<li>Close the connection, input and output streams.
+</ol>
+</p>
+<h3><a name="PTS">How do we put it together to build a server?</a></h3>
+<p>The outline for the server is shown below. </p>
+<pre><b> <font color=blue>
+
+
+import java.io.*;
+import java.net.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.util.*;
+
+public class tcpServer extends JFrame implements  ActionListener {
+    
+
+    public  tcpServer() {
+       super ( "Server" ) ;
+
+       setup() ;
+
+       RunServer() ;
+    }
+
+    public  void setup() {
+
+    }
+
+    public void RunServer() {
+       
+    }
+
+   /**
+    * This method responds to the send, cancel or exit button
+    *  being pressed on the tcpClient frame.
+    */
+   public void actionPerformed( ActionEvent e )    {
+      if ( e.getSource() == exit )
+         closeConnection() ;
+   }
+
+   private void closeConnection() {
+
+   }
+
+
+    public static void main(String args[]) {
+       final tcpServer server = new tcpServer() ;
+       server.addWindowListener(
+         new WindowAdapter() {
+            public void windowClosing( WindowEvent e )
+            {
+               server.closeConnection() ;
+               System.exit( 0 );
+            }
+         }
+      );
+    }
+
+
+   class WindowHandler extends WindowAdapter {
+      tcpServer tcpS;
+
+      public WindowHandler( tcpServer t ) { tcpS = t; }
+
+      public void windowClosing( WindowEvent e ) { tcpS.closeConnection(); }
+   }
+
+}
+
+</font> </b> </pre>
+<h3><a name="HDTSW">How does the Server work? </a> </h3>
+<p>This is the flow when the <b>Server</b> is started.
+<ol>
+<li>Java calls the <b>Server's main</b> method.
+<li>In the <b>Server's main</b> method, an instance of the tcpServer class is created.
+<li>The <b>tcpServer's</b> constructor is called.
+<li>In the <b>tcpServer's</b> constructor, 
+<ol>
+<li>The <b>setup</b> method is called.
+<li>The <b>RunServer</b> method is called.
+<ol>
+<li>An instance of the <b>ServerSocke</b>t class is created.
+<li>An outer infinite loop is created for the purposes of listening for messages.
+<li>A socket is attached to the <b>ServerSocket</b> and it begins listening for messages.
+<li>A <b>BufferedReader</b> and an <b>InputStreamReader</b> are attached to this socket.
+<li>A <b>PrintWriter</b> is attached to this socket for the purposes of output.
+<li>An inner loop is set up to listen for messages.
+<li>The <b>BufferedReader</b> listens on the socket in asynchronous mode.
+<ul>
+<li>This means that the <b>BufferedReader</b> object <b>input</b> is triggered when a message is received.
+<li>The messages that can trigger the <b>Server's</b> filter are:
+<ul>
+<li><b>FIND</b>
+<li><b>LISTALL</b>
+<li><b>ADD</b>
+<li><b>UPDATE</b>
+<li><b>DELETE</b>
+</ul>
+</ul>
+<li>When a message is received, the <b>Server</b> acknowledges the receipt of the message by sending a message to the <b>Client</b>.
+<li>If a message is received that requests that the <b>Server</b> <b><i>Quit</i></b>, the <b>Server</b> will close it socket.
+</ol>
+</ol>
+</ol>
+</p>
+<h3><a name="PTC">How do we put it together to build a Client?</a></h3>
+<p>The outline for the Client is shown below. </p>
+<b><pre> <font color=blue>
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
+import java.awt.event.*;
+import java.net.*;
+
+public class tcpClient extends JFrame implements  ActionListener {
+   
+   public tcpClient() {
+      super( "Client" ) ;
+
+      setUp() ;
+
+      connect() ;
+
+      RunClient() ;
+
+      closeConnection() ;
+   }
+
+   /** The setUp() method does the intialization for the application */
+   private void setUp() {
+     
+
+   }
+
+/** The connect() method does the intialization of the client socket
+ *  on localhost and port 5050*/
+   private void connect() {
+      // connect to server
+      
+   }
+
+   private void sendData(String str) {
+      
+   }
+
+   private void RunClient() {
+      
+   }
+
+   /**
+    * This method responds to the send, cancel or exit button
+    *  being pressed on the tcpClient frame.
+    */
+   public void actionPerformed( ActionEvent e )    {
+      if ( e.getSource() == exit ) {
+      }
+      // list all names in the array
+      else if ( e.getSource() == list ) {
+      }
+      else  if ( !enterBox.getText().equals( "" ) ) {
+         if ( e.getSource() == clear ) {
+         }
+         // get user input and send it to server
+         else if ( e.getSource() == find ) {
+         }
+         else if ( e.getSource() == add ) {
+         }
+         else if ( e.getSource() == update ) {
+         }
+         else if ( e.getSource() == delete ) {
+         }
+      }
+      else {
+          JOptionPane.showMessageDialog(null,
+                 "Please enter a last name" + "\n",
+                 "No last name",
+                 JOptionPane.INFORMATION_MESSAGE ) ;
+      }
+   }
+
+   private void closeConnection() {
+      
+   }
+
+   public static void main(String[] args) {
+      final tcpClient client = new tcpClient() ;
+
+      client.addWindowListener(
+         new WindowAdapter() {
+            public void windowClosing( WindowEvent e )
+            {
+               client.closeConnection() ;
+            }
+         }
+      );
+   }
+
+   class WindowHandler extends WindowAdapter {
+      tcpClient tcpC;
+
+      public WindowHandler( tcpClient t ) { tcpC = t; }
+
+      public void windowClosing( WindowEvent e ) { tcpC.closeConnection(); }
+   }
+
+}
+
+
+</font> </pre> </b>
+
+<h3><a name="HDTCW">How does the Client work? </a> </h3>
+<p>This is the flow when the <b>Client</b> is started.
+<ol>
+<li>Java calls the <b>Client's main</b> method.
+<li>In the <b>Client's main</b> method, an instance of the tcpClient class is created.
+<li>The <b>tcpClient's</b> constructor is called.
+<li>In the <b>tcpClient's</b> constructor, 
+<ol>
+<li>The <b>setUp</b> method is called. In the setUp() method:
+<ol>
+<li><b>JButtons</b> are created 
+<li><b>JPanels</b> are created 
+<li><b>JLabels</b> are created 
+<li><b>Action Listeners</b> are  added to the JButtons
+<li>Sets the size for the JFrame
+<li>Sets the location for the JFrame
+<li>Makes the JFrame visible
+</ol>
+<li><b>connect</b> method is called.
+<ol>
+<li>A <b>Socket</b> instance is created and connected to the specified port number (5050) at the specified IP address (localhost).
+</ol>
+<li><b>RunClient</b> method is called.
+<ol>
+<li>A <b>BufferedReader</b> and an <b>InputStreamReader</b> object are created.
+<li>An infinite loop is created to listen for messages from the <b>Server</b>.
+<li>If a <b>QUIT</b> message is received from the server, the socket is closed.
+</ol>
+<li><b>actionPerformed</b> method is called asynchronously in response to the 
+<ul>
+<li><b>List</b> 
+<li><b>Find</b>
+<li><b>Delete</b> 
+<li><b>Clear</b> and/or 
+<li><b>Exit</b>  
+</ul>
+<i>push buttons</i> being pressed.
+</ol>
+<li><b>sendData</b> method is called when the <b>Send</b> push button is pressed.
+<ul>
+<li>The message entered by the user is gathered and sent to the server.
+</ul>
+<li><b>closeConnection()</b> method is called.
+<ol>
+<li>Notifies the <b>Client</b> to close.
+<li>Closes the socket.
+<li>Closes the input and output streams.
+</ol>
+</ol>
+</p> <br> <br>
+<!-- Definitions -->
+<p><a name="C_S"><b>Client-Server</b></a>  -  A <b>client</b> is a requester of services and a <b>server</b> is the provider of services.</p>
+<p><a name="EXT"><b>extends</b></a> - when considering<i> class MyClass <b>extends</b> ParentClass</i>, <b>MyClass</b> inherits from <b>ParentClass</b>. Java does not support multiple inheritance; it supports only single inheritance. </p>
+<p><a name="INH"><b>Inheritance</b></a>  - when a class is defined, any subclass that is defined can inherit the definitions (public and/or protected) of the parent/base classes.</p>
+<p><a name="JFR"><b>JFrame</b></a> - A JFrame is a top-level window with a title and a border. </p>
+<p><a name="PROT"><b>protocol</b></a> - this is the format that we will use to communicate between the client and the server.</p>
+<p><a name="REQ"><b>Requirement</b></a> - In this instance, a specification that documents the functions, performance, design constraints and attributes of a program to be delivered.</p>
+<p><a name="SOC"><b>Socket</b></a>  -  a software object that connects an application to a network protocol. In Java, a program can send and receive TCP/IP messages by opening a socket and reading and writing data to and from the socket.</p>
+<p><a name="TEM"><b>Template</b></a> - is a unique class or pattern that can be used to build other software code.
+<p><a name="TWOT"><b>Two-tier</b></a>  - A client/server architectures where the GUI runs on the client and the <a href="#RA">random access file</a> is stored on the server.
+<pre><b>
+  Tier 1        Tier 2         
++--------+     +--------+     
+| Client |<--->| Server |
++--------+     +--------+     
+   GUI                
+                 
+</b> </pre>
+</p>
+<p><a name="TT"><b>Three-tier</b></a>  - A client/server architecture consisting of three well-defined and separate <a href="#PROC">processes.</a>
+<pre><b>
+  Tier 1        Tier 2         Tier 3
++--------+     +--------+     +------+
+| Client |<--->| Server |<--->| DBMS |
++--------+     +--------+     +------+
+   GUI          Application      DB
+                Server 
+</b> </pre>
+</p>
+<p><a name="PROC"><b>Process</b></a>  -An executing program. </p>
+<p><a name="SOCKETS"><b>Sockets</b></a> - a software object that connects an application to a network protocol, such as <a href="#TCP">TCP/IP</a>. </p>
+<p><a name="TCP"><b>TCP/IP</b></a> - is an abbreviation for Transmission Control Protocol/Internet Protocol, the suite of communications protocols, which are used to connect hosts over the Internet.</p>
+<p><a name="TEM"><b>Template</b></a> - is a unique class or pattern that can be used to build other software code.</p>
+<br> <br>
+<br> <br><br> <br>
+<br> <br>
+<br> <br><br> <br>
+<br> <br>
+<br> <br>
+         <br> </a></font></font><center><font size="4"><font size="4"><a name="INH"> 
+          <img src="indexHWS_files/bludiv4684.html" width="600" height="5">
+           </a></font></font><p><font size="4"><font size="4"><a name="INH"><font face="Verdana, Arial, Helvetica, sans-serif" size="1">[</font></a><font face="Verdana, Arial, Helvetica, sans-serif" size="1"><a href="http://sumtotalz.com/TotalAppsWorks/index.html">HOME</a>] 
+                 [<a href="http://sumtotalz.com/TotalAppsWorks/consulting.html">Consulting</a>] [<a href="http://sumtotalz.com/TotalAppsWorks/design.html">Design</a>]
+                 [<a href="http://sumtotalz.com/TotalAppsWorks/Maintenance.html">Maintenance</a>] [<a href="http://sumtotalz.com/TotalAppsWorks/project.html">Project</a>] 
+                 [<a href="http://sumtotalz.com/TotalAppsWorks/testing.html">Testing</a>] [<a href="http://sumtotalz.com/TotalAppsWorks/training.html">Training</a>] [<a href="http://sumtotalz.com/TotalAppsWorks/turnkey.html">Turnkey</a>] 
+                  [<a href="http://sumtotalz.com/TotalAppsWorks/java.html">Java</a>]</font></font></font></p>
+
+<font size="4"><font size="4">           </font></font><p><font size="4"><font size="4"><font color="black" size="2" face="Arial, Helvetica, sans-serif">© 2002 - 2006 All 
+                Rights Reserved<b><i> Total Application Works </i></b></font></font></font></p><font size="4"><font size="4"> </font></font></center><font size="4"><font size="4"> 
+
+
+
+</font></p>
+
+</body></html>
